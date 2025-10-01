@@ -125,7 +125,8 @@ def suggest_max_memory() -> int:
 
 
 def suggest_execution_providers() -> List[str]:
-    return encode_execution_providers(onnxruntime.get_available_providers())
+    # Force GPU-only (CUDA), no CPU, no TensorRT
+    return encode_execution_providers(["CUDAExecutionProvider"])
 
 
 def suggest_execution_threads() -> int:

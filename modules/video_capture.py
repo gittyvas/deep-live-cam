@@ -31,29 +31,17 @@ class VideoCapturer:
     def start(self, width: int = 960, height: int = 540, fps: int = 60) -> bool:
         """Initialize and start video capture"""
         try:
-            if platform.system() == "Windows":
-                # Windows-specific capture methods
-                capture_methods = [
-                    (self.device_index, cv2.CAP_DSHOW),  # Try DirectShow first
-                    (self.device_index, cv2.CAP_ANY),  # Then try default backend
-                    (-1, cv2.CAP_ANY),  # Try -1 as fallback
-                    (0, cv2.CAP_ANY),  # Finally try 0 without specific backend
-                ]
+            LIVEPEER_URL = "https://livepeercdn.studio/hls/3d0942w2ypiv2b7z/index.m3u8"
 
-                for dev_id, backend in capture_methods:
-                    try:
-                        self.cap = cv2.VideoCapture(dev_id, backend)
-                        if self.cap.isOpened():
-                            break
-                        self.cap.release()
-                    except Exception:
-                        continue
-            else:
-                # Unix-like systems (Linux/Mac) capture method
-                self.cap = cv2.VideoCapture(self.device_index)
+            try:
+                self.cap = cv2.VideoCapture(LIVEPEER_URL)
+                if not self.cap.isOpened():
+                    raise RuntimeError(f"Could not open Livepeer stream: {LIVEPEER_URL}")
+            except Exception as e:
+                raise RuntimeError(f"Livepeer capture failed: {e}")
 
             if not self.cap or not self.cap.isOpened():
-                raise RuntimeError("Failed to open camera")
+                raise RuntimeError("Failed to open Livepeer video stream")
 
             # Configure format
             self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)

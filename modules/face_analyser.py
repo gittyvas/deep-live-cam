@@ -14,15 +14,25 @@ from pathlib import Path
 
 FACE_ANALYSER = None
 
-
 def get_face_analyser() -> Any:
     global FACE_ANALYSER
 
     if FACE_ANALYSER is None:
-        FACE_ANALYSER = insightface.app.FaceAnalysis(name='buffalo_l', providers=modules.globals.execution_providers)
-        FACE_ANALYSER.prepare(ctx_id=0, det_size=(640, 640))
-    return FACE_ANALYSER
+        # Force CUDA + CPU fallback regardless of globals
+        FACE_ANALYSER = insightface.app.FaceAnalysis(
+            name="buffalo_l",
+            providers=["CUDAExecutionProvider", "CPUExecutionProvider"]
+        )
+        print(">>> Requested providers: ['CUDAExecutionProvider', 'CPUExecutionProvider']")
 
+        # Prepare model on GPU (ctx_id=0 = first CUDA device)
+        FACE_ANALYSER.prepare(ctx_id=0, det_size=(640, 640))
+
+        # Show providers for each submodel
+        for name, model in FACE_ANALYSER.models.items():
+            print(f">>> Submodel {name} providers: {model.session.get_providers()}")
+
+    return FACE_ANALYSER
 
 def get_one_face(frame: Frame) -> Any:
     face = get_face_analyser().get(frame)
